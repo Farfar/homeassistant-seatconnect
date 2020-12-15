@@ -18,7 +18,7 @@ async def async_setup_platform(hass, config, async_add_entities, discovery_info=
 
 
 class SkodaSensor(SkodaEntity):
-    """Representation of a Skoda Carnet Sensor."""
+    """Representation of a Skoda Connect Sensor."""
 
     @property
     def state(self):

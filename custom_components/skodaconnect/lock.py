@@ -4,9 +4,12 @@ Support for Skoda Connect Platform
 import logging
 
 from homeassistant.components.lock import LockEntity
-#from homeassistant.components.lock import LockDevice
+from homeassistant.helpers.dispatcher import async_dispatcher_send
 
 from . import DATA_KEY, SkodaEntity
+from .const import DOMAIN
+
+SIGNAL_STATE_UPDATED = f"{DOMAIN}.updated"
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -32,7 +35,9 @@ class SkodaLock(SkodaEntity, LockEntity):
     async def async_lock(self, **kwargs):
         """Lock the car."""
         await self.instrument.lock()
+        async_dispatcher_send(self.hass, SIGNAL_STATE_UPDATED)
 
     async def async_unlock(self, **kwargs):
         """Unlock the car."""
         await self.instrument.unlock()
+        async_dispatcher_send(self.hass, SIGNAL_STATE_UPDATED)

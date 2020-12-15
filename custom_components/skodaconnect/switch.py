@@ -4,11 +4,14 @@ Support for Skoda Connect Platform
 import logging
 
 from homeassistant.helpers.entity import ToggleEntity
+from homeassistant.helpers.dispatcher import async_dispatcher_send
 
 from . import DATA_KEY, SkodaEntity
+from .const import DOMAIN
 
 _LOGGER = logging.getLogger(__name__)
 
+SIGNAL_STATE_UPDATED = f"{DOMAIN}.updated"
 
 async def async_setup_platform(hass, config, async_add_entities, discovery_info=None):
     """ Setup the Skoda switch."""
@@ -30,12 +33,14 @@ class SkodaSwitch(SkodaEntity, ToggleEntity):
         """Turn the switch on."""
         _LOGGER.debug("Turning ON %s." % self.instrument.attr)
         await self.instrument.turn_on()
+        async_dispatcher_send(self.hass, SIGNAL_STATE_UPDATED)
         self.async_write_ha_state()
 
     async def async_turn_off(self, **kwargs):
         """Turn the switch off."""
         _LOGGER.debug("Turning OFF %s." % self.instrument.attr)
         await self.instrument.turn_off()
+        async_dispatcher_send(self.hass, SIGNAL_STATE_UPDATED)
         self.async_write_ha_state()
 
     @property

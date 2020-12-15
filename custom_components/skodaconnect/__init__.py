@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 import logging
-from datetime import timedelta
+from datetime import date, datetime, timedelta
 
 import homeassistant.helpers.config_validation as cv
 import voluptuous as vol
@@ -22,12 +22,13 @@ from homeassistant.helpers.event import async_track_point_in_utc_time
 from homeassistant.helpers.icon import icon_for_battery_level
 from homeassistant.util.dt import utcnow
 from skodaconnect import Connection
-#from . import skoda
 
-__version__ = "1.0.18"
+from .const import DOMAIN
+
+__version__ = "1.0.18-test"
 _LOGGER = logging.getLogger(__name__)
 
-DOMAIN = "skodaconnect"
+#DOMAIN = "skodaconnect"
 DATA_KEY = DOMAIN
 CONF_REGION = "region"
 DEFAULT_REGION = "CZ"
@@ -35,6 +36,7 @@ CONF_MUTABLE = "mutable"
 CONF_SPIN = "spin"
 CONF_COMBUSTIONENGINEHEATINGDURATION = "combustion_engine_heating_duration"
 CONF_COMBUSTIONENGINECLIMATISATIONDURATION = "combustion_engine_climatisation_duration"
+CONF_DEFAULTCLIMATISATIONDURATION = "climatisation_duration"
 CONF_SCANDINAVIAN_MILES = "scandinavian_miles"
 
 SIGNAL_STATE_UPDATED = f"{DOMAIN}.updated"
@@ -52,29 +54,34 @@ COMPONENTS = {
 }
 
 RESOURCES = [
+    "nickname",
+    "deactivated",
     "position",
     "distance",
-    "electric_climatisation",
-    "combustion_climatisation",
+    "last_connected",
+    "outside_temperature",
     "window_heater",
-    "combustion_engine_heating",
+    "climatisation_target_temperature",
+    "climatisation_without_external_power",
+    "electric_climatisation",
+    "auxiliary_climatisation",
+    "pheater_climatisation",
+    "pheater_heating",
+    "pheater_status",
+    "external_power",
+    "energy_flow",
     "charging",
+    "charge_max_ampere",
+    "charging_time_left",
+    "charging_cable_connected",
+    "charging_cable_locked",
     "adblue_level",
     "battery_level",
     "fuel_level",
-    "service_inspection",
-    "oil_inspection",
-    "last_connected",
-    "charging_time_left",
     "electric_range",
     "combustion_range",
     "combined_range",
-    "charge_max_ampere",
-    "climatisation_target_temperature",
-    "external_power",
-    "energy_flow",
     "parking_light",
-    "climatisation_without_external_power",
     "door_locked",
     "door_closed_left_front",
     "door_closed_right_front",
@@ -83,10 +90,6 @@ RESOURCES = [
     "trunk_locked",
     "trunk_closed",
     "hood_closed",
-    "charging_cable_connected",
-    "charging_cable_locked",
-    "request_in_progress",
-    "requests_remaining",
     "windows_closed",
     "window_closed_left_front",
     "window_closed_right_front",
@@ -98,10 +101,14 @@ RESOURCES = [
     "trip_last_average_fuel_consumption",
     "trip_last_duration",
     "trip_last_length",
-    "combustion_engine_heatingventilation_status",
+    "service_inspection",
+    "oil_inspection",
     "service_inspection_km",
     "oil_inspection_km",
-    "outside_temperature",
+    "request_in_progress",
+    "requests_remaining",
+    "request_result",
+    "pheater_duration",
 ]
 
 CONFIG_SCHEMA = vol.Schema(
@@ -115,6 +122,7 @@ CONFIG_SCHEMA = vol.Schema(
                 vol.Optional(CONF_SPIN, default=""): cv.string,
                 vol.Optional(CONF_COMBUSTIONENGINEHEATINGDURATION, default=30): vol.In([10,20,30,40,50,60]),
                 vol.Optional(CONF_COMBUSTIONENGINECLIMATISATIONDURATION, default=30): vol.In([10,20,30,40,50,60]),
+                vol.Optional(CONF_DEFAULTCLIMATISATIONDURATION, default=30): vol.In([10,20,30,40,50,60]),
                 vol.Optional(CONF_SCAN_INTERVAL, default=DEFAULT_UPDATE_INTERVAL): (
                     vol.All(cv.time_period, vol.Clamp(min=MIN_UPDATE_INTERVAL))
                 ),
@@ -133,18 +141,56 @@ CONFIG_SCHEMA = vol.Schema(
     extra=vol.ALLOW_EXTRA,
 )
 
+TIMER = vol.Schema(
+    {
+                vol.Required("id"): vol.In([1,2,3]),
+                vol.Optional("recurring"): vol.All(
+                    cv.ensure_list, [
+                        vol.In(["mon","tue","wed","thu","fri","sat","sun"])
+                    ]
+                ),
+                vol.Optional("single"): cv.date,
+                vol.Optional("departureTimeOfDay"): cv.time,
+                vol.Optional("operationCharging"): cv.boolean,
+                vol.Optional("chargeMaxCurrent"): vol.In(["Max", "Reduced"]),
+                vol.Optional("targetChargeLevel"): vol.All(vol.Coerce(int), vol.Range(min=1, max=100)),
+                vol.Optional("operationClimatisation"): cv.boolean,
+                vol.Optional("heaterSource"): vol.In(["electric","automatic"]),
+                vol.Optional("timerProgrammedStatus", default="programmed"): vol.In(["notProgrammed","programmed"]),
+    }, extra=vol.ALLOW_EXTRA
+)
+SERVICE_SET_SCHEDULE = "set_schedule"
+SERVICE_SET_PHEATER_DURATION = "set_pheater_duration"
+SERVICE_SET_SCHEDULE_SCHEMA = vol.Schema(
+    {
+        vol.Required("vin"): cv.string,
+        vol.Optional("temp"): vol.In([16,17,18,19,20,21,22,23,24,25,26,27,28,29,30]),
+        vol.Optional("timers"):
+            vol.All(
+                cv.ensure_list, [vol.All(TIMER)]
+            )
+    }
+)
+SERVICE_SET_PHEATER_DURATION_SCHEMA = vol.Schema(
+    {
+        vol.Required("vin"): cv.string,
+        vol.Required("duration"): vol.In([10,20,30,40,50,60]),
+    }
+)
+
 
 async def async_setup(hass, config):
     """Setup skoda connect component"""
     session = async_get_clientsession(hass)
 
     _LOGGER.info(f"Starting Skoda Connect, version {__version__}")
-    _LOGGER.debug("Creating connection to skoda connect")        
+    _LOGGER.debug("Creating connection to skoda connect")
     connection = Connection(
         session=session,
         username=config[DOMAIN].get(CONF_USERNAME),
         password=config[DOMAIN].get(CONF_PASSWORD),
     )
+    skodaconn = connection
 
     interval = config[DOMAIN].get(CONF_SCAN_INTERVAL)
     data = hass.data[DATA_KEY] = SkodaData(config)
@@ -152,6 +198,84 @@ async def async_setup(hass, config):
     def is_enabled(attr):
         """Return true if the user has enabled the resource."""
         return attr in config[DOMAIN].get(CONF_RESOURCES, [attr])
+
+    async def schedule_prepare(call):
+        _LOGGER.debug("Prepare data from service call: %s" % call.data)
+        # Prepare data in a way that service can accept
+        servicedata = [{"timerBasicSetting": {}}, {}, {}, {}]
+        mask = {"mon": 0, "tue": 1, "wed": 2, "thu": 3, "fri": 4, "sat": 5, "sun": 6}
+
+        # Convert temperature (if set) to Kelvin and multiply by 10
+        if call.data.get("temp", False):
+            servicedata[0]["timerBasicSetting"] = {"targetTemperature": int((call.data.get("temp") + 273)*10)}
+
+        for timer in call.data['timers']:
+            days = []
+            schedule = []
+            id = timer["id"]
+            servicedata[id] = timer
+
+            # Convert Max/Reduced to corresponding int values
+            if timer.get('chargeMaxCurrent', False):
+                if timer['chargeMaxCurrent'] == 'Max':
+                   timer['chargeMaxCurrent'] = 254
+                elif timer['chargeMaxCurrent'] == 'Reduced':
+                   timer['chargeMaxCurrent'] = 252
+            # Prepare recurring/single data conversion
+            time = timer.get("departureTimeOfDay", "08:00")
+            # Recurring schedule
+            if timer.get("recurring", False):
+                timer["departureTimeOfDay"] = time.strftime("%H:%M")
+                timer["timerFrequency"] = "cyclic"
+                timer["departureWeekdayMask"] = ""
+                for day in timer.get("recurring"):
+                    days.append(mask[day.lower()])
+                for i in range(0,6):
+                    timer["departureWeekdayMask"] += "y" if i in days else "n"
+            # Single fire date
+            else:
+                now_date = date.today()
+                now_time = datetime.now().time()
+                schedule_time = timer.get("departureTimeOfDay", datetime.now().time())
+                schedule_date = call.data.get("single") if call.data.get("single", False) else date.today()
+                timer["departureTimeOfDay"] = "00:00"
+                timer["timerFrequency"] = "single"
+                if schedule_date <= now_date:
+                    if now_time >= schedule_time:
+                        schedule_date = now_date + timedelta(days=1)
+                    else:
+                        schedule_date = now_date
+                schedule_datetime = datetime.combine(schedule_date, schedule_time)
+                timer["departureDateTime"] = schedule_datetime.strftime("%Y-%m-%dT%H:%M")
+
+        _LOGGER.debug("Successfully prepared data: %s" % servicedata)
+        try:
+            vin = call.data.get("vin")
+            _LOGGER.debug("Try to fetch object for VIN: %s" % vin)
+            car = connection.vehicle(vin)
+            _LOGGER.debug("Executing set schedule")
+            result = await car.set_schedule(servicedata)
+            async_dispatcher_send(hass, SIGNAL_STATE_UPDATED)
+        except Exception as err:
+            _LOGGER.warning("Couldn't execute, error: %s" % err)
+            async_dispatcher_send(hass, SIGNAL_STATE_UPDATED)
+            return False
+        return False
+
+    async def set_pheater_duration(call):
+        try:
+            _LOGGER.debug("Try to fetch object for VIN: %s" % call.data.get("vin", ""))
+            vin = call.data.get("vin")
+            car = connection.vehicle(vin)
+            _LOGGER.debug("Found car: %s" % car.nickname)
+            _LOGGER.debug("Set climatisation duration to: %s" % call.data.get("duration", 0))
+            car.pheater_duration = call.data.get("duration")
+            async_dispatcher_send(hass, SIGNAL_STATE_UPDATED)
+        except Exception as err:
+            _LOGGER.warning("Couldn't execute, error: %s" % err)
+            async_dispatcher_send(hass, SIGNAL_STATE_UPDATED)
+            return False
+        return False
 
     def discover_vehicle(vehicle):
         """Load relevant platforms."""
@@ -161,8 +285,9 @@ async def async_setup(hass, config):
             mutable=config[DOMAIN][CONF_MUTABLE],
             spin=config[DOMAIN][CONF_SPIN],
             scandinavian_miles=config[DOMAIN][CONF_SCANDINAVIAN_MILES],
-            combustionengineheatingduration=config[DOMAIN][CONF_COMBUSTIONENGINEHEATINGDURATION],
-            combustionengineclimatisationduration=config[DOMAIN][CONF_COMBUSTIONENGINECLIMATISATIONDURATION],
+            climatisation_duration=config[DOMAIN][CONF_DEFAULTCLIMATISATIONDURATION],
+            #combustionengineheatingduration=config[DOMAIN][CONF_COMBUSTIONENGINEHEATINGDURATION],
+            #combustionengineclimatisationduration=config[DOMAIN][CONF_COMBUSTIONENGINECLIMATISATIONDURATION],
         )
 
         for instrument in (
@@ -202,7 +327,7 @@ async def async_setup(hass, config):
             _LOGGER.debug("Updating data from skoda connect")
             for vehicle in connection.vehicles:
                 if vehicle.vin not in data.vehicles:
-                    _LOGGER.info(f"Adding data for VIN: {vehicle.vin} from carnet")
+                    _LOGGER.info(f"Adding data for VIN: {vehicle.vin}")
                     discover_vehicle(vehicle)
 
             async_dispatcher_send(hass, SIGNAL_STATE_UPDATED)
@@ -212,6 +337,21 @@ async def async_setup(hass, config):
             async_track_point_in_utc_time(hass, update, utcnow() + interval)
 
     _LOGGER.info("Starting skodaconnect component")
+
+    # Register HASS Service calls
+    hass.services.async_register(
+        DOMAIN,
+        SERVICE_SET_SCHEDULE,
+        schedule_prepare,
+        schema=SERVICE_SET_SCHEDULE_SCHEMA
+    )
+    hass.services.async_register(
+        DOMAIN,
+        SERVICE_SET_PHEATER_DURATION,
+        set_pheater_duration,
+        schema=SERVICE_SET_PHEATER_DURATION_SCHEMA
+    )
+
     return await update(utcnow())
 
 
@@ -242,6 +382,8 @@ class SkodaData:
         """Provide a friendly name for a vehicle."""
         if vehicle.vin and vehicle.vin.lower() in self.names:
             return self.names[vehicle.vin.lower()]
+        elif vehicle.is_nickname_supported:
+            return vehicle.nickname
         elif vehicle.vin:
             return vehicle.vin
         else:

@@ -3,6 +3,7 @@ Support for Skoda Connect Platform
 """
 import logging
 
+from homeassistant.helpers.dispatcher import async_dispatcher_send
 from homeassistant.components.climate import ClimateEntity
 #from homeassistant.components.climate import ClimateDevice
 from homeassistant.components.climate.const import (
@@ -20,6 +21,10 @@ from homeassistant.const import (
 SUPPORT_HVAC = [HVAC_MODE_HEAT, HVAC_MODE_OFF]
 
 from . import DATA_KEY, SkodaEntity
+
+from .const import DOMAIN
+
+SIGNAL_STATE_UPDATED = f"{DOMAIN}.updated"
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -75,6 +80,9 @@ class SkodaClimate(SkodaEntity, ClimateEntity):
         temperature = kwargs.get(ATTR_TEMPERATURE)
         if temperature:
             await self.instrument.set_temperature(temperature)
+        async_dispatcher_send(self.hass, SIGNAL_STATE_UPDATED)
+
+            
 
     async def async_set_hvac_mode(self, hvac_mode):
         """Set new target hvac mode."""
@@ -83,3 +91,4 @@ class SkodaClimate(SkodaEntity, ClimateEntity):
             await self.instrument.set_hvac_mode(False)
         elif hvac_mode == HVAC_MODE_HEAT:
             await self.instrument.set_hvac_mode(True)
+        async_dispatcher_send(self.hass, SIGNAL_STATE_UPDATED)
