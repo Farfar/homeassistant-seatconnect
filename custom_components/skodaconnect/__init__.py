@@ -1,4 +1,4 @@
-# -*- coding: utf-8 -*-
+    # -*- coding: utf-8 -*-
 import logging
 from datetime import date, datetime, timedelta
 
@@ -30,14 +30,13 @@ _LOGGER = logging.getLogger(__name__)
 
 #DOMAIN = "skodaconnect"
 DATA_KEY = DOMAIN
-CONF_REGION = "region"
-DEFAULT_REGION = "CZ"
+#CONF_REGION = "region" # Not needed?
+#DEFAULT_REGION = "CZ" # Not needed?
 CONF_MUTABLE = "mutable"
 CONF_SPIN = "spin"
-CONF_COMBUSTIONENGINEHEATINGDURATION = "combustion_engine_heating_duration"
-CONF_COMBUSTIONENGINECLIMATISATIONDURATION = "combustion_engine_climatisation_duration"
 CONF_DEFAULTCLIMATISATIONDURATION = "climatisation_duration"
 CONF_SCANDINAVIAN_MILES = "scandinavian_miles"
+CONF_IMPERIAL_UNITS = "imperial_units"
 
 SIGNAL_STATE_UPDATED = f"{DOMAIN}.updated"
 
@@ -117,11 +116,9 @@ CONFIG_SCHEMA = vol.Schema(
             {
                 vol.Required(CONF_USERNAME): cv.string,
                 vol.Required(CONF_PASSWORD): cv.string,
-                vol.Optional(CONF_REGION, default=DEFAULT_REGION): cv.string,
+                #vol.Optional(CONF_REGION, default=DEFAULT_REGION): cv.string,
                 vol.Optional(CONF_MUTABLE, default=True): cv.boolean,
                 vol.Optional(CONF_SPIN, default=""): cv.string,
-                vol.Optional(CONF_COMBUSTIONENGINEHEATINGDURATION, default=30): vol.In([10,20,30,40,50,60]),
-                vol.Optional(CONF_COMBUSTIONENGINECLIMATISATIONDURATION, default=30): vol.In([10,20,30,40,50,60]),
                 vol.Optional(CONF_DEFAULTCLIMATISATIONDURATION, default=30): vol.In([10,20,30,40,50,60]),
                 vol.Optional(CONF_SCAN_INTERVAL, default=DEFAULT_UPDATE_INTERVAL): (
                     vol.All(cv.time_period, vol.Clamp(min=MIN_UPDATE_INTERVAL))
@@ -135,6 +132,7 @@ CONFIG_SCHEMA = vol.Schema(
                     cv.ensure_list, [vol.In(RESOURCES)]
                 ),
                 vol.Optional(CONF_SCANDINAVIAN_MILES, default=False): cv.boolean,
+                vol.Optional(CONF_IMPERIAL_UNITS, default=False): cv.boolean,
             }
         ),
     },
@@ -286,8 +284,7 @@ async def async_setup(hass, config):
             spin=config[DOMAIN][CONF_SPIN],
             scandinavian_miles=config[DOMAIN][CONF_SCANDINAVIAN_MILES],
             climatisation_duration=config[DOMAIN][CONF_DEFAULTCLIMATISATIONDURATION],
-            #combustionengineheatingduration=config[DOMAIN][CONF_COMBUSTIONENGINEHEATINGDURATION],
-            #combustionengineclimatisationduration=config[DOMAIN][CONF_COMBUSTIONENGINECLIMATISATIONDURATION],
+            imperial_units=config[DOMAIN][CONF_IMPERIAL_UNITS],
         )
 
         for instrument in (
