@@ -102,8 +102,8 @@ RESOURCES = [
     "trip_last_length",
     "service_inspection",
     "oil_inspection",
-    "service_inspection_km",
-    "oil_inspection_km",
+    "service_inspection_distance",
+    "oil_inspection_distance",
     "request_in_progress",
     "requests_remaining",
     "request_result",
@@ -228,7 +228,7 @@ async def async_setup(hass, config):
                 timer["departureWeekdayMask"] = ""
                 for day in timer.get("recurring"):
                     days.append(mask[day.lower()])
-                for i in range(0,6):
+                for i in range(0,7):
                     timer["departureWeekdayMask"] += "y" if i in days else "n"
             # Single fire date
             else:
