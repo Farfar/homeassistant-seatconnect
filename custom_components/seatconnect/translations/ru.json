@@ -30,7 +30,7 @@
         }
       },
       "reauth_confirm": {
-        "description": "Повторно войдите в свою учетную запись Seat Connect.\nПеред продолжением обязательно примите новое лицензионное соглашение с конечным пользователем на портале Seat Connect portal (https://my.seat/portal/). ",
+        "description": "Повторно войдите в свою учетную запись Seat Connect.\nПеред продолжением обязательно примите новое лицензионное соглашение с конечным пользователем на портале Seat Connect (https://my.seat/portal/). ",
         "data": {
           "username": "Email",
           "password": "Password"
