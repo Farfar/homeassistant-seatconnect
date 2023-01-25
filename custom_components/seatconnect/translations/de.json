@@ -38,31 +38,31 @@
       }
     },
     "abort": {
-      "already_configured": "Car with this VIN is already configured",
-      "reauth_successful": "Re-authentication was successful"
+      "already_configured": "Auto mit dieser FIN ist bereits konfiguriert",
+      "reauth_successful": "Die erneute Authentifizierung war erfolgreich"
     },
     "error": {
-      "cannot_connect": "Could not login to Seat Connect, please check your credentials and verify that the service is working",
-      "cannot_update": "Could not query update from Seat Connect",
+      "cannot_connect": "Anmeldung bei Seat Connect nicht möglich, bitte überprüfe deine Zugangsdaten und vergewissern dich, dass der Dienst funktioniert",
+      "cannot_update": "Aktualisierung von Seat Connect konnte nicht abgefragt werden",
       "unknown": "[%key:common::config_flow::error::unknown%]"
     },
     "progress": {
-      "task_login": "Logging in to Seat Connect",
-      "task_update": "Fetching vehicles"
+      "task_login": "Anmeldung bei Seat Connect",
+      "task_update": "Fahrzeuge abfragen"
     }
   },
   "options": {
     "step": {
       "user": {
-        "title": "Options for Seat Connect",
-        "description": "Configure settings",
+        "title": "Optionen für Seat Connect",
+        "description": "Einstellungen konfigurieren",
         "data": {
-          "update_interval": "Poll frequency (minutes)",
+          "update_interval": "Abfragehäufigkeit (Minuten)",
           "spin": "S-PIN",
-          "mutable": "Allow interactions with car (actions). Uncheck to make the car 'read only'.",
-          "convert": "Select distance/unit conversions.",
-          "resources": "Resources to monitor.",
-          "debug": "Full API debug logging (requires debug logging enabled in configuration.yaml)"
+          "mutable": "Erlaube Interaktionen mit dem Auto (Aktionen). Deaktivieren um das Auto 'schreibgeschützt' zu machen.",
+          "convert": "Wähle Entfernungs-/Einheitsumwandlungen aus.",
+          "resources": "Zu überwachende Ressourcen.",
+          "debug": "Vollständiges API Debug Logging (erfordert die Aktivierung von Debug Logging im configuration.yaml)"
         }
       }
     }
