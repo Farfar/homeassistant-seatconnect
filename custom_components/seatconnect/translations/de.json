@@ -30,7 +30,7 @@
         }
       },
       "reauth_confirm": {
-        "description": "Re-authenticate with your Seat Connect account.\nMake sure to accept any new EULA in the Seat Connect portal (https://my.seat/portal/) before proceeding. ",
+        "description": "Authentifiziere dich erneut mit deinem Seat Connect Konto.\nStelle sicher, dass du alle neuen EULAs im Seat Connect-Portal (https://my.seat/portal/) akzeptierst, bevor du fortfährst.",
         "data": {
           "username": "E-Mail",
           "password": "Passwort"
