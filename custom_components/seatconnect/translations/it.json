@@ -12,11 +12,11 @@
       },
       "vehicle": {
         "title": "Impostazione Veicolo",
-        "description": "TYrovati i seguenti veicoli. Perfavore scegli il veicolo che vuoi monitorare e la sua configurazione.\n\nL'S-PIN è richiesto solo per operazioni specifiche come l'Apertura/Chiusura e l'attivazione del riscaldamento\nPuoi lasciare il campo vuoto.",
+        "description": "Trovati i seguenti veicoli. Per favore scegli il veicolo che vuoi monitorare e la sua configurazione.\n\nL'S-PIN è richiesto solo per operazioni specifiche come l'Apertura/Chiusura e l'attivazione del riscaldamento\nPuoi lasciare il campo vuoto.",
         "data": {
           "vehicle": "Numero VIN",
           "spin": "S-PIN",
-          "mutable": "Permetti interazione con l'auto(azioni). Deseleziona se vuoi sono monitorare."
+          "mutable": "Permetti interazione con l'auto (azioni). Deseleziona se vuoi solo monitorare."
         }
       },
       "monitoring": {
@@ -39,15 +39,15 @@
     },
     "abort": {
       "already_configured": "L'auto con questo VIN è già configurata",
-      "reauth_successful": "Re-autenticazione riuscita"
+      "reauth_successful": "Ri-autenticazione riuscita"
     },
     "error": {
-      "cannot_connect": "Non riesco ad accedere a Seat Connect, perfavore controlla le tue credenziali e verifica che il servizio funzioni",
+      "cannot_connect": "Non riesco ad accedere a Seat Connect, per favore controlla le tue credenziali e verifica che il servizio funzioni",
       "cannot_update": "Richiesta aggiornamento a Seat Connect non riuscita",
       "unknown": "[%key:common::config_flow::error::unknown%]"
     },
     "progress": {
-      "task_login": "Accessp a Seat Connect",
+      "task_login": "Accesso a Seat Connect",
       "task_update": "Recupero veicoli"
     }
   },
