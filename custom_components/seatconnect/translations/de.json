@@ -25,7 +25,7 @@
         "data": {
           "resources": "Zu überwachende Ressourcen.",
           "convert": "Wähle Entfernungs-/Einheitsumwandlungen aus.",
-          "update_interval": "Abfragehäufigkeit (Minuten).",
+          "update_interval": "Abfragehäufigkeit (Sekunden).",
           "debug": "Vollständiges API Debug Logging (erfordert die Aktivierung von Debug Logging im configuration.yaml)"
         }
       },
