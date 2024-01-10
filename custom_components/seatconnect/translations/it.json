@@ -25,7 +25,7 @@
         "data": {
           "resources": "Risorse da monitorare.",
           "convert": "Scegli la conversione di distanza/unità.",
-          "update_interval": "Frequenza di aggiornamento (minuti).",
+          "update_interval": "Frequenza di aggiornamento (secondi).",
           "debug": "API debug logging completo (richiede che il debug logging sia abilitato in configuration.yaml)"
         }
       },
