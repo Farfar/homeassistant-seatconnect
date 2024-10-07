@@ -2,6 +2,11 @@
 ![PyPi](https://img.shields.io/pypi/v/seatconnect?label=latest%20pypi)
 ![Downloads](https://img.shields.io/github/downloads/farfar/homeassistant-seatconnect/total)
 
+# THIS IS NOT MAINTAINED SINCE I DON'T OWN A SEAT/CUPRA CAR
+If you can/want to take over development please send me a message
+
+---
+
 # Seat Connect - A Home Assistant custom component for Seat Connect
 
 ## This is fork of [lendy007/homeassistant-skodaconnect](https://github.com/lendy007/homeassistant-skodaconnect) modified to support Seat
