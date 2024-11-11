@@ -67,7 +67,7 @@ class SeatSensor(SeatEntity):
         state_class = None
         if self.instrument.attr in [
             'battery_level', 'adblue_level', 'fuel_level', 'charging_time_left', 'charging_power', 'charge_rate',
-            'electric_range', 'combustion_range', 'combined_range', 'outside_temperature'
+            'electric_range', 'combustion_range', 'combined_range', 'outside_temperature', 'oil_level'
         ]:
             state_class = "measurement"
         return state_class
